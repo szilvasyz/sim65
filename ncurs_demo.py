@@ -108,13 +108,13 @@ while True:
             wasm.pad.clear()
             wc.setsize()
 
-        elif c == curses.KEY_F1:
+        elif c == curses.KEY_F2:
             runstate = "halt"
 
-        elif c == curses.KEY_F2:
+        elif c == curses.KEY_F3:
             runstate = "run"
 
-        elif c == curses.KEY_F3:
+        elif c == curses.KEY_F4:
             runstate = "step"
             nexttime = time.monotonic()
 
