@@ -3,7 +3,11 @@ import core65
 import simmem
 import curswin
 import curses
+import configparser
 
+
+config = configparser.ConfigParser()
+config.read("sim65.ini")
 
 keys = []
 
