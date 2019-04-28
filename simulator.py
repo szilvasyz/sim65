@@ -64,7 +64,7 @@ wmenu.addstr("dit ")
 
 
 config = configparser.ConfigParser()
-config.read("sim65.ini")
+config.read("simulator.ini")
 
 for section in config.sections():
 
