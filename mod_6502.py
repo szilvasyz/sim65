@@ -1,4 +1,4 @@
-class Core65:
+class cpu:
 
     _instructions = {
         0x00: 'BRK', 0x01: 'ORA', 0x02: '---', 0x03: '---', 0x04: '---', 0x05: 'ORA', 0x06: 'ASL', 0x07: '---',
@@ -70,8 +70,8 @@ class Core65:
     }
 
     def __init__(self, debug=0):
-        self.mem_rd_proc = []
-        self.mem_wr_proc = []
+        self.mem_rd_proc = None
+        self.mem_wr_proc = None
 
         self.bitN = 0x80
         self.bitV = 0x40
@@ -135,16 +135,16 @@ class Core65:
         return
 
     def _memrd(self, addr, poll=False):
-        for p in self.mem_rd_proc:
-            d = p(addr, poll)
+        if self.mem_rd_proc:
+            d = self.mem_rd_proc(addr, poll)
             if d is not None:
                 return d
 
         return 0xFF
 
     def _memwr(self, addr, data):
-        for p in self.mem_wr_proc:
-            p(addr, data)
+        if self.mem_wr_proc:
+            self.mem_wr_proc(addr, data)
         return 
 
     def _fetch(self):
@@ -161,8 +161,8 @@ class Core65:
         return self._memrd(0x100 + self.regs["S"])
 
     def addmem(self, read_proc, write_proc):
-        self.mem_rd_proc.append(read_proc)
-        self.mem_wr_proc.append(write_proc)
+        self.mem_rd_proc = read_proc
+        self.mem_wr_proc = write_proc
 
     def disasm(self, address=None):
         if address is None:

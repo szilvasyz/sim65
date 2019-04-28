@@ -1,35 +1,42 @@
 import time
-import core65
-import simmem
 import curswin
 import curses
 import configparser
 
 
-config = configparser.ConfigParser()
-config.read("sim65.ini")
-
 keys = []
 
+mem_rd_proc = []
+mem_wr_proc = []
 
-def ioread(address, poll):
-    if address == 0xF004:
-        if keys:
-            if poll:
-                return keys[-1]
-            else:
-                return keys.pop()
+
+def _conread(poll):
+    if keys:
+        if poll:
+            return keys[-1]
         else:
-            return 0
+            return keys.pop()
+    else:
+        return 0
 
 
-def iowrite(address, data):
-    if address == 0xF001:
-#        wmain.pad.chgat(1, curses.A_NORMAL)
-        wmain.addstr(chr(data))
-#        wmain.pad.chgat(1, curses.A_REVERSE)
-#        wmain.refresh()
-#        print("{:c}".format(data), end="")
+def _conwrite(data):
+    wmain.addstr(chr(data))
+
+
+def _memrd(addr, poll=False):
+    for p in mem_rd_proc:
+        d = p(addr, poll)
+        if d is not None:
+            return d
+
+    return 0xFF
+
+
+def _memwr(addr, data):
+    for p in mem_wr_proc:
+        p(addr, data)
+    return
 
 
 wc = curswin.WinColl()
@@ -56,15 +63,42 @@ wmenu.addstr("E", curswin.UNDERLINE)
 wmenu.addstr("dit ")
 
 
-memory = simmem.Memory()
-memory.fill(0x0000, 0xEFFF, 0xEA)
-memory.fill(0xFF00, 0xFFFF, 0xEA)
-memory.load("6502_functional_test.hex")
+config = configparser.ConfigParser()
+config.read("sim65.ini")
+
+for section in config.sections():
+
+    if config.has_option(section, 'type'):
+        tp = config.get(section, 'type')
+
+        if tp == "mem":
+            mtype = "mod_" + config.get(section, 'module')
+            exec("import " + mtype)
+            memory = eval(mtype + ".cells(_conread, _conwrite)")
+
+            if config.has_option(section, "start"):
+                msta = int(config.get(section, 'start'), 0)
+                mend = int(config.get(section, 'end'), 0)
+                mfil = int(config.get(section, 'fill'), 0)
+                memory.fill(msta, mend, mfil)
+
+            if config.has_option(section, 'initfile'):
+                memory.load(config.get(section, 'initfile'))
+
+            mem_rd_proc.append(memory.read)
+            mem_wr_proc.append(memory.write)
+
+        elif tp == "cpu":
+            mtype = "mod_" + config.get(section, 'module')
+            exec("import " + mtype)
+            cpu = eval(mtype + ".cpu(debug=0)")
+            cpu.addmem(_memrd, _memwr)
 
 
-cpu = core65.Core65(debug=0)
-cpu.addmem(memory.read, memory.write)
-cpu.addmem(ioread, iowrite)
+#cpu = core65.Core65(debug=0)
+#cpu.addmem(memory.read, memory.write)
+#cpu.addmem(ioread, iowrite)
+#cpu.addmem(_memrd, _memwr)
 
 
 termchars = []

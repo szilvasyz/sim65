@@ -1,4 +1,4 @@
-import core65
+import mod_6502
 from intelhex import IntelHex
 # import curses
 import myio
@@ -77,7 +77,7 @@ for add in ih.addresses():
 
 
 #cpu = core65.Core65(memory_read, memory_write, debug=0)
-cpu = core65.Core65(memory_read_test, memory_write_test, debug=0)
+cpu = mod_6502.Core65(memory_read_test, memory_write_test, debug=0)
 #cpu.cpu_state = 'run'
 #cpu.regs["PC"] = 0x0400
 print(cpu)
