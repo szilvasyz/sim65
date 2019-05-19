@@ -127,6 +127,7 @@ while True:
             n = "---"
 
         wmem.addstr("\n{:6.6} {:b}\n{:10}".format(str(c), (c in termchars), n))
+        wmem.refresh()
 
         if c in termchars:
             keys.insert(0, c)

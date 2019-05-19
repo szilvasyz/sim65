@@ -125,6 +125,7 @@ class WinColl:
 
     def setsize(self):
         try:
+            curses.resize_term(0, 0)
             begx, begy = self.screen.getbegyx()
             maxx, maxy = self.screen.getmaxyx()
             self.screen.erase()
